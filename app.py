@@ -15,10 +15,22 @@ FILE_PATH = "db.json"
 def load_data():
     url = f"https://api.github.com/repos/{REPO}/contents/{FILE_PATH}"
     headers = {"Authorization": f"token {TOKEN}"}
-    res = requests.get(url, headers=headers).json()
 
-    content = base64.b64decode(res["content"]).decode()
-    return json.loads(content), res["sha"]
+    res = requests.get(url, headers=headers)
+
+    if res.status_code != 200:
+        print("GitHub API Error:", res.json())
+        raise Exception("Failed to load db.json from GitHub")
+
+    res_json = res.json()
+
+    # SAFETY CHECK
+    if "content" not in res_json:
+        print("Invalid response:", res_json)
+        raise Exception("No content found in GitHub response")
+
+    content = base64.b64decode(res_json["content"]).decode()
+    return json.loads(content), res_json["sha"]
 
 # ---------------- SAVE DATA ----------------
 def save_data(data, sha):
@@ -28,12 +40,16 @@ def save_data(data, sha):
     encoded = base64.b64encode(json.dumps(data, indent=4).encode()).decode()
 
     payload = {
-        "message": "update data",
+        "message": "update db",
         "content": encoded,
         "sha": sha
     }
 
-    requests.put(url, json=payload, headers=headers)
+    res = requests.put(url, json=payload, headers=headers)
+
+    if res.status_code not in [200, 201]:
+        print("Save Error:", res.json())
+        raise Exception("Failed to save data")
 
 # ---------------- AUTH ----------------
 @app.route("/", methods=["GET","POST"])
