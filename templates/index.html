@@ -7,57 +7,65 @@
 
 <body class="bg-light">
 
-<div class="container py-5">
+<div class="d-flex">
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold">📋 Team Task Manager</h3>
-        <div>
-            <a href="/dashboard" class="btn btn-outline-primary btn-sm">Dashboard</a>
-            <a href="/logout" class="btn btn-outline-danger btn-sm">Logout</a>
-        </div>
+    <!-- Sidebar -->
+    <div class="bg-dark text-white p-3" style="width:220px; min-height:100vh;">
+        <h5 class="mb-4">🚀 TaskApp</h5>
+        <a href="/tasks" class="text-white d-block mb-2">📋 Tasks</a>
+        <a href="/dashboard" class="text-white d-block mb-2">📊 Dashboard</a>
+        <a href="/logout" class="text-danger d-block mt-4">Logout</a>
     </div>
 
-    <!-- Add Task Card -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <h5 class="card-title mb-3">➕ Add New Task</h5>
+    <!-- Main Content -->
+    <div class="flex-grow-1 p-4">
 
-            <form method="POST" action="/add">
-                <div class="row g-2">
+        <h3 class="mb-4">📋 Task Manager</h3>
 
-                    <div class="col-md-2">
-                        <input name="user" class="form-control" placeholder="Assign User" required>
+        <!-- Add Task -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form method="POST" action="/add">
+                    <div class="row g-2">
+
+                        <div class="col-md-2">
+                            <input name="user" class="form-control" placeholder="User" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <input name="task" class="form-control" placeholder="Task" required>
+                        </div>
+
+                        <div class="col-md-2">
+                            <input name="remark" class="form-control" placeholder="Remark">
+                        </div>
+
+                        <div class="col-md-2">
+                            <input type="date" name="target" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-2">
+                            <select name="status" class="form-control">
+                                <option>Pending</option>
+                                <option>In Progress</option>
+                                <option>Blocked</option>
+                                <option>Done</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-1 d-grid">
+                            <button class="btn btn-primary">+</button>
+                        </div>
+
                     </div>
-
-                    <div class="col-md-3">
-                        <input name="task" class="form-control" placeholder="Task" required>
-                    </div>
-
-                    <div class="col-md-3">
-                        <input name="remark" class="form-control" placeholder="Remark">
-                    </div>
-
-                    <div class="col-md-2">
-                        <input type="date" name="target" class="form-control" required>
-                    </div>
-
-                    <div class="col-md-2 d-grid">
-                        <button class="btn btn-primary">Add</button>
-                    </div>
-
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
 
-    <!-- Task Table -->
-    <div class="card shadow-sm">
-        <div class="card-body">
+        <!-- Task Table -->
+        <div class="card shadow-sm">
+            <div class="card-body">
 
-            <h5 class="mb-3">📌 Task List</h5>
-
-            <div class="table-responsive">
                 <table class="table table-hover align-middle">
 
                     <thead class="table-light">
@@ -65,8 +73,9 @@
                             <th>User</th>
                             <th>Task</th>
                             <th>Remark</th>
+                            <th>Open Date</th>
                             <th>Target Date</th>
-                            <th>Status</th>
+                            <th>Current Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -76,16 +85,13 @@
                         <tr>
 
                             <td><strong>{{t[1]}}</strong></td>
-
                             <td>{{t[2]}}</td>
-
                             <td>{{t[3] or '-'}}</td>
+                            <td>{{t[6]}}</td>
 
                             <td>
                                 {% if t[4] < today|string and t[5] != 'Done' %}
-                                    <span class="text-danger fw-semibold">
-                                        {{t[4]}} ⚠ Overdue
-                                    </span>
+                                    <span class="text-danger fw-bold">{{t[4]}} ⚠</span>
                                 {% else %}
                                     {{t[4]}}
                                 {% endif %}
@@ -94,6 +100,10 @@
                             <td>
                                 {% if t[5] == 'Done' %}
                                     <span class="badge bg-success">Done</span>
+                                {% elif t[5] == 'In Progress' %}
+                                    <span class="badge bg-primary">In Progress</span>
+                                {% elif t[5] == 'Blocked' %}
+                                    <span class="badge bg-danger">Blocked</span>
                                 {% else %}
                                     <span class="badge bg-warning text-dark">Pending</span>
                                 {% endif %}
@@ -109,11 +119,11 @@
                     </tbody>
 
                 </table>
+
             </div>
-
         </div>
-    </div>
 
+    </div>
 </div>
 
 </body>
