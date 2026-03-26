@@ -1,40 +1,18 @@
+import os
 from flask import Flask, render_template, request, redirect, session, flash
-import sqlite3
-from datetime import datetime
+from datetime import datetime, date
+import psycopg2
+from werkzeug.security import generate_password_hash, check_password_hash
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "secret123"
+app.secret_key = os.getenv("SECRET_KEY")
 
-# ---------------- DB ----------------
-def init_db():
-    conn = sqlite3.connect("tasks.db")
-    cursor = conn.cursor()
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE,
-        password TEXT
-    )
-    """)
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS tasks (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user TEXT,
-        task TEXT,
-        remark TEXT,
-        status TEXT,
-        open_date TEXT,
-        target_date TEXT,
-        status TEXT DEFAULT 'Pending'
-    )
-    """)
-
-    conn.commit()
-    conn.close()
-
-init_db()
+# ---------------- DB CONNECTION ----------------
+def get_db():
+    return psycopg2.connect(os.getenv("DATABASE_URL"))
 
 # ---------------- AUTH ----------------
 @app.route("/", methods=["GET", "POST"])
@@ -43,37 +21,40 @@ def login():
         user = request.form["username"]
         pwd = request.form["password"]
 
-        conn = sqlite3.connect("tasks.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (user, pwd))
-        data = cursor.fetchone()
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("SELECT password FROM users WHERE username=%s", (user,))
+        data = cur.fetchone()
         conn.close()
 
-        if data:
+        if data and check_password_hash(data[0], pwd):
             session["user"] = user
             return redirect("/tasks")
         else:
-            flash("Invalid Credentials")
+            flash("Invalid credentials")
 
     return render_template("login.html")
 
-@app.route("/register", methods=["GET","POST"])
+
+@app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
         user = request.form["username"]
-        pwd = request.form["password"]
+        pwd = generate_password_hash(request.form["password"])
 
-        conn = sqlite3.connect("tasks.db")
-        cursor = conn.cursor()
+        conn = get_db()
+        cur = conn.cursor()
         try:
-            cursor.execute("INSERT INTO users (username,password) VALUES (?,?)",(user,pwd))
+            cur.execute("INSERT INTO users (username,password) VALUES (%s,%s)", (user, pwd))
             conn.commit()
         except:
             flash("User already exists")
         conn.close()
+
         return redirect("/")
 
     return render_template("register.html")
+
 
 @app.route("/logout")
 def logout():
@@ -86,46 +67,58 @@ def tasks():
     if "user" not in session:
         return redirect("/")
 
-    conn = sqlite3.connect("tasks.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM tasks")
-    data = cursor.fetchall()
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM tasks ORDER BY id DESC")
+    tasks = cur.fetchall()
     conn.close()
 
-    today = datetime.now().date()
+    today = date.today()
 
-    return render_template("index.html", tasks=data, today=today)
+    return render_template("index.html", tasks=tasks, today=today, current_user=session["user"])
+
 
 @app.route("/add", methods=["POST"])
 def add():
+    if "user" not in session:
+        return redirect("/")
+
     user = request.form["user"]
     task = request.form["task"]
     remark = request.form["remark"]
     target = request.form["target"]
+    status = request.form["status"]
+    open_date = datetime.now().date()
 
-    conn = sqlite3.connect("tasks.db")
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO tasks (user,task,remark,target_date) VALUES (?,?,?,?)",
-                   (user,task,remark,target))
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        INSERT INTO tasks (username, task, remark, open_date, target_date, status)
+        VALUES (%s,%s,%s,%s,%s,%s)
+    """, (user, task, remark, open_date, target, status))
+
     conn.commit()
     conn.close()
 
     return redirect("/tasks")
 
-@app.route("/complete/<int:id>")
-def complete(id):
-    conn = sqlite3.connect("tasks.db")
-    cursor = conn.cursor()
-    cursor.execute("UPDATE tasks SET status='Done' WHERE id=?", (id,))
+
+@app.route("/update_status/<int:id>/<status>")
+def update_status(id, status):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE tasks SET status=%s WHERE id=%s", (status, id))
     conn.commit()
     conn.close()
     return redirect("/tasks")
+
 
 @app.route("/delete/<int:id>")
 def delete(id):
-    conn = sqlite3.connect("tasks.db")
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM tasks WHERE id=?", (id,))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM tasks WHERE id=%s", (id,))
     conn.commit()
     conn.close()
     return redirect("/tasks")
@@ -133,18 +126,22 @@ def delete(id):
 # ---------------- DASHBOARD ----------------
 @app.route("/dashboard")
 def dashboard():
-    conn = sqlite3.connect("tasks.db")
-    cursor = conn.cursor()
+    conn = get_db()
+    cur = conn.cursor()
 
-    cursor.execute("SELECT COUNT(*) FROM tasks WHERE status='Pending'")
-    pending = cursor.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM tasks WHERE status='Pending'")
+    pending = cur.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM tasks WHERE status='Done'")
-    done = cursor.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM tasks WHERE status='Done'")
+    done = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM tasks WHERE target_date < CURRENT_DATE AND status!='Done'")
+    overdue = cur.fetchone()[0]
 
     conn.close()
 
-    return render_template("dashboard.html", pending=pending, done=done)
+    return render_template("dashboard.html", pending=pending, done=done, overdue=overdue)
 
+# ---------------- RUN ----------------
 if __name__ == "__main__":
     app.run(debug=True)
