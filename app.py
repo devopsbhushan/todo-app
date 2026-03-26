@@ -24,6 +24,8 @@ def init_db():
         user TEXT,
         task TEXT,
         remark TEXT,
+        status TEXT,
+        open_date TEXT,
         target_date TEXT,
         status TEXT DEFAULT 'Pending'
     )
