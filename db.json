@@ -9,5 +9,15 @@
             "password": "scrypt:32768:8:1$RdnXBTqKOwgi0NbP$c5705b47ab6bff70bd53c62f00ae224c3f528556fb527647def7c34edc3fdab5d1ab2fa81d5a96bfaa508c54cc6e5f7d3ce798d02ee86637a9b2a3fb4a50c611"
         }
     ],
-    "tasks": []
+    "tasks": [
+        {
+            "id": 1,
+            "user": "Bhushan",
+            "task": "WiFi Airspan JAM compliance",
+            "remark": "5K gap observed",
+            "target": "2026-03-27",
+            "status": "Pending",
+            "open_date": "2026-03-27"
+        }
+    ]
 }
