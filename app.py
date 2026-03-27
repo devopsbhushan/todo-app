@@ -52,7 +52,7 @@ def save_data(data, sha):
         raise Exception("Failed to save data")
 
 # ---------------- AUTH ----------------
-@app.route("/", methods=["GET","POST"])
+@app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         user = request.form["username"]
@@ -61,21 +61,14 @@ def login():
         data, _ = load_data()
 
         for u in data["users"]:
-            print("DB USER:", u["username"])
-            print("INPUT USER:", user)
-
-            if u["username"] == user:
-                print("USERNAME MATCH")
-
             if u["username"] == user and check_password_hash(u["password"], pwd):
-                print("LOGIN SUCCESS")
-               session["user"] = user
+                session["user"] = user
                 return redirect("/tasks")
 
         flash("Invalid credentials")
 
     return render_template("login.html")
-
+    
 
 @app.route("/register", methods=["GET","POST"])
 def register():
