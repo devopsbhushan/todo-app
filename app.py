@@ -106,10 +106,18 @@ def tasks():
     if "user" not in session:
         return redirect("/")
 
-    data, _ = load_data()
+    try:
+        data, _ = load_data()
+    except Exception as e:
+        return f"Error loading data: {str(e)}"
+
+    # safety fallback
+    tasks = data.get("tasks", [])
+
+    from datetime import date
     today = date.today().strftime("%Y-%m-%d")
 
-    return render_template("index.html", tasks=data["tasks"], today=today, current_user=session["user"])
+    return render_template("index.html", tasks=tasks, today=today, current_user=session["user"])
 
 
 @app.route("/add", methods=["POST"])
