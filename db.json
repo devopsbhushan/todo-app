@@ -1,4 +1,9 @@
 {
-  "users": [],
-  "tasks": []
+    "users": [
+        {
+            "username": "Admin",
+            "password": "scrypt:32768:8:1$FyPaYv0W2skiST9m$3898864da26953f5216512271d1086ec1424191e6f13fcc4f12ba29e4ccde9d880b4ea3c27d7951aef9b9cbc92ef9273e25a85b7b32e7dbc78fb915d5e41dc5f"
+        }
+    ],
+    "tasks": []
 }
