@@ -1,4 +1,9 @@
 {
-  "users": [],
+  "users": [
+    {
+      "username": "Admin",
+      "password": "Admin"
+    }
+  ],
   "tasks": []
 }
