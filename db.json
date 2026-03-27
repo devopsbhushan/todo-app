@@ -3,6 +3,10 @@
         {
             "username": "Admin",
             "password": "scrypt:32768:8:1$FyPaYv0W2skiST9m$3898864da26953f5216512271d1086ec1424191e6f13fcc4f12ba29e4ccde9d880b4ea3c27d7951aef9b9cbc92ef9273e25a85b7b32e7dbc78fb915d5e41dc5f"
+        },
+        {
+            "username": "Bhushan",
+            "password": "scrypt:32768:8:1$RdnXBTqKOwgi0NbP$c5705b47ab6bff70bd53c62f00ae224c3f528556fb527647def7c34edc3fdab5d1ab2fa81d5a96bfaa508c54cc6e5f7d3ce798d02ee86637a9b2a3fb4a50c611"
         }
     ],
     "tasks": []
