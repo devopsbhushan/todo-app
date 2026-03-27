@@ -61,8 +61,15 @@ def login():
         data, _ = load_data()
 
         for u in data["users"]:
+            print("DB USER:", u["username"])
+            print("INPUT USER:", user)
+
+            if u["username"] == user:
+                print("USERNAME MATCH")
+
             if u["username"] == user and check_password_hash(u["password"], pwd):
-                session["user"] = user
+                print("LOGIN SUCCESS")
+               session["user"] = user
                 return redirect("/tasks")
 
         flash("Invalid credentials")
