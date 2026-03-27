@@ -84,25 +84,25 @@
                         {% for t in tasks %}
                         <tr>
 
-                            <td><strong>{{t[1]}}</strong></td>
-                            <td>{{t[2]}}</td>
-                            <td>{{t[3] or '-'}}</td>
-                            <td>{{t[6]}}</td>
+                            <td><strong>{{t["user"]}}</strong></td>
+                            <td>{{t["task"]}}</td>
+                            <td>{{t["remark"] or '-'}}</td>
+                            <td>{{t["open_date"]}}</td>
 
                             <td>
-                                {% if t[4] < today|string and t[5] != 'Done' %}
-                                    <span class="text-danger fw-bold">{{t[4]}} ⚠</span>
+                                {% if t["target"] < today and t["status"] != 'Done' %}
+                                    <span class="text-danger fw-bold">{{t["target"]}} ⚠</span>
                                 {% else %}
-                                    {{t[4]}}
+                                    {{t["target"]}}
                                 {% endif %}
                             </td>
 
                             <td>
-                                {% if t[5] == 'Done' %}
+                                {% if t["target"] == 'Done' %}
                                     <span class="badge bg-success">Done</span>
-                                {% elif t[5] == 'In Progress' %}
+                                {% elif t["status"] == 'In Progress' %}
                                     <span class="badge bg-primary">In Progress</span>
-                                {% elif t[5] == 'Blocked' %}
+                                {% elif t["status"] == 'Blocked' %}
                                     <span class="badge bg-danger">Blocked</span>
                                 {% else %}
                                     <span class="badge bg-warning text-dark">Pending</span>
